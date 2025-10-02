@@ -6,18 +6,23 @@ import (
 	"unicode"
 )
 
+var (
+	ErrInvalidLength       = errors.New("airport code must be exactly 3 characters")
+	ErrNotUppercaseLetters = errors.New("airport code must be uppercase letters only")
+)
+
 func ValidateAirportCode(code string) error {
 	if len(code) != 3 {
-		return errors.New("airport code must be exactly 3 characters")
+		return ErrInvalidLength
 	}
 
 	if code != strings.ToUpper(code) {
-		return errors.New("airport code must be uppercase letters only")
+		return ErrNotUppercaseLetters
 	}
 
 	for _, char := range code {
 		if !unicode.IsLetter(char) {
-			return errors.New("airport code must be uppercase letters only")
+			return ErrNotUppercaseLetters
 		}
 	}
 
