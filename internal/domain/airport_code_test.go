@@ -40,3 +40,9 @@ func TestValidateAirportCode_Invalid_WithNumbers(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "airport code must be uppercase letters only", err.Error())
 }
+
+func TestValidateAirportCode_Invalid_WithSpecialChars(t *testing.T) {
+	err := ValidateAirportCode("JF-")
+	assert.Error(t, err)
+	assert.Equal(t, "airport code must be uppercase letters only", err.Error())
+}
