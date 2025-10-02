@@ -15,10 +15,6 @@ import (
 	"the-engineering-coach/tdd-with-ai/internal/ports"
 )
 
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
-
 type FlightResponse struct {
 	FlightNumber       string    `json:"flight_number"`
 	OriginAirport      string    `json:"origin_airport"`
