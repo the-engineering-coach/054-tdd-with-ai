@@ -39,3 +39,16 @@ func TestFlightService_SearchByOrigin_ValidCode(t *testing.T) {
 	assert.Equal(t, "AA100", flights[0].FlightNumber)
 	mockRepo.AssertExpectations(t)
 }
+
+func TestFlightService_SearchByOrigin_InvalidCode(t *testing.T) {
+	mockRepo := new(MockFlightRepository)
+
+	service := NewFlightService(mockRepo)
+	ctx := context.Background()
+
+	_, err := service.SearchByOrigin(ctx, "INVALID")
+	require.Error(t, err)
+	assert.Equal(t, "airport code must be exactly 3 characters", err.Error())
+
+	mockRepo.AssertNotCalled(t, "FindByOrigin")
+}

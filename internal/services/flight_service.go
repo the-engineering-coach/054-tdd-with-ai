@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 
+	"the-engineering-coach/tdd-with-ai/internal/domain"
 	"the-engineering-coach/tdd-with-ai/internal/ports"
 )
 
@@ -19,5 +20,9 @@ func NewFlightService(repo FlightRepository) *FlightService {
 }
 
 func (s *FlightService) SearchByOrigin(ctx context.Context, origin string) ([]ports.Flight, error) {
+	if err := domain.ValidateAirportCode(origin); err != nil {
+		return nil, err
+	}
+
 	return s.repo.FindByOrigin(ctx, origin)
 }
