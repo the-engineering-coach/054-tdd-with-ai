@@ -16,3 +16,9 @@ func TestValidateAirportCode_Invalid_TooShort(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "airport code must be exactly 3 characters", err.Error())
 }
+
+func TestValidateAirportCode_Invalid_TooLong(t *testing.T) {
+	err := ValidateAirportCode("JFKX")
+	assert.Error(t, err)
+	assert.Equal(t, "airport code must be exactly 3 characters", err.Error())
+}
