@@ -3,6 +3,7 @@ package domain
 import (
 	"errors"
 	"strings"
+	"unicode"
 )
 
 func ValidateAirportCode(code string) error {
@@ -12,6 +13,12 @@ func ValidateAirportCode(code string) error {
 
 	if code != strings.ToUpper(code) {
 		return errors.New("airport code must be uppercase letters only")
+	}
+
+	for _, char := range code {
+		if !unicode.IsLetter(char) {
+			return errors.New("airport code must be uppercase letters only")
+		}
 	}
 
 	return nil
