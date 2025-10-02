@@ -28,3 +28,9 @@ func TestValidateAirportCode_Invalid_Lowercase(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "airport code must be uppercase letters only", err.Error())
 }
+
+func TestValidateAirportCode_Invalid_MixedCase(t *testing.T) {
+	err := ValidateAirportCode("JfK")
+	assert.Error(t, err)
+	assert.Equal(t, "airport code must be uppercase letters only", err.Error())
+}
