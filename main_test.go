@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
@@ -17,12 +18,12 @@ import (
 )
 
 type Flight struct {
-	FlightNumber       string `json:"flight_number"`
-	OriginAirport      string `json:"origin_airport"`
-	DestinationAirport string `json:"destination_airport"`
-	DateTime           string `json:"date_time"`
-	Duration           int    `json:"duration"` // in minutes
-	Airline            string `json:"airline"`
+	FlightNumber       string    `json:"flight_number"`
+	OriginAirport      string    `json:"origin_airport"`
+	DestinationAirport string    `json:"destination_airport"`
+	DepartureTime      time.Time `json:"departure_time"`
+	Duration           int       `json:"duration"` // in minutes
+	Airline            string    `json:"airline"`
 }
 
 func TestSearchFlightsByOrigin(t *testing.T) {
@@ -40,7 +41,7 @@ func TestSearchFlightsByOrigin(t *testing.T) {
 			flight_number TEXT,
 			origin_airport TEXT,
 			destination_airport TEXT,
-			date_time TEXT,
+			departure_time TEXT,
 			duration INTEGER,
 			airline TEXT
 		)
@@ -48,17 +49,28 @@ func TestSearchFlightsByOrigin(t *testing.T) {
 	require.NoError(t, err)
 
 	// Insert 3 test flights with JFK origin
-	flights := []Flight{
-		{FlightNumber: "AA100", OriginAirport: "JFK", DestinationAirport: "LAX", DateTime: "2025-10-02T10:00:00Z", Duration: 360, Airline: "American Airlines"},
-		{FlightNumber: "UA200", OriginAirport: "JFK", DestinationAirport: "SFO", DateTime: "2025-10-02T14:00:00Z", Duration: 380, Airline: "United Airlines"},
-		{FlightNumber: "DL300", OriginAirport: "JFK", DestinationAirport: "ORD", DateTime: "2025-10-02T16:00:00Z", Duration: 150, Airline: "Delta Airlines"},
+	departureTime1 := time.Date(2025, 10, 2, 10, 0, 0, 0, time.UTC)
+	departureTime2 := time.Date(2025, 10, 2, 14, 0, 0, 0, time.UTC)
+	departureTime3 := time.Date(2025, 10, 2, 16, 0, 0, 0, time.UTC)
+
+	flights := []struct {
+		FlightNumber       string
+		OriginAirport      string
+		DestinationAirport string
+		DepartureTime      time.Time
+		Duration           int
+		Airline            string
+	}{
+		{"AA100", "JFK", "LAX", departureTime1, 360, "American Airlines"},
+		{"UA200", "JFK", "SFO", departureTime2, 380, "United Airlines"},
+		{"DL300", "JFK", "ORD", departureTime3, 150, "Delta Airlines"},
 	}
 
 	for _, flight := range flights {
 		_, err = db.Exec(`
-			INSERT INTO flights (flight_number, origin_airport, destination_airport, date_time, duration, airline)
+			INSERT INTO flights (flight_number, origin_airport, destination_airport, departure_time, duration, airline)
 			VALUES (?, ?, ?, ?, ?, ?)
-		`, flight.FlightNumber, flight.OriginAirport, flight.DestinationAirport, flight.DateTime, flight.Duration, flight.Airline)
+		`, flight.FlightNumber, flight.OriginAirport, flight.DestinationAirport, flight.DepartureTime.Format(time.RFC3339), flight.Duration, flight.Airline)
 		require.NoError(t, err)
 	}
 
