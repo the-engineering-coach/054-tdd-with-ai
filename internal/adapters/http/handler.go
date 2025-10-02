@@ -25,10 +25,13 @@ func (h *FlightHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.service.SearchByOrigin(r.Context(), origin)
+	flights, err := h.service.SearchByOrigin(r.Context(), origin)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(flights)
 }
