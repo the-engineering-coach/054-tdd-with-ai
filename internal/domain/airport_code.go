@@ -2,7 +2,6 @@ package domain
 
 import (
 	"errors"
-	"strings"
 	"unicode"
 )
 
@@ -16,12 +15,8 @@ func ValidateAirportCode(code string) error {
 		return ErrInvalidLength
 	}
 
-	if code != strings.ToUpper(code) {
-		return ErrNotUppercaseLetters
-	}
-
 	for _, char := range code {
-		if !unicode.IsLetter(char) {
+		if !unicode.IsLetter(char) || !unicode.IsUpper(char) {
 			return ErrNotUppercaseLetters
 		}
 	}
