@@ -46,3 +46,9 @@ func TestValidateAirportCode_Invalid_WithSpecialChars(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, "airport code must be uppercase letters only", err.Error())
 }
+
+func TestValidateAirportCode_Invalid_Empty(t *testing.T) {
+	err := ValidateAirportCode("")
+	assert.Error(t, err)
+	assert.Equal(t, "airport code must be exactly 3 characters", err.Error())
+}
