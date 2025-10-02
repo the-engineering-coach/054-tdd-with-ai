@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"the-engineering-coach/tdd-with-ai/internal/ports"
 )
@@ -28,11 +29,15 @@ type FlightResponse struct {
 }
 
 type MockFlightService struct {
-	SearchByOriginFunc func(ctx context.Context, origin string) ([]ports.Flight, error)
+	mock.Mock
 }
 
 func (m *MockFlightService) SearchByOrigin(ctx context.Context, origin string) ([]ports.Flight, error) {
-	return m.SearchByOriginFunc(ctx, origin)
+	args := m.Called(ctx, origin)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]ports.Flight), args.Error(1)
 }
 
 func TestFlightHandler_NoOriginProvided(t *testing.T) {
@@ -54,11 +59,8 @@ func TestFlightHandler_NoOriginProvided(t *testing.T) {
 }
 
 func TestFlightHandler_InvalidOriginAirportCode(t *testing.T) {
-	mockService := &MockFlightService{
-		SearchByOriginFunc: func(ctx context.Context, origin string) ([]ports.Flight, error) {
-			return nil, errors.New("invalid airport code")
-		},
-	}
+	mockService := new(MockFlightService)
+	mockService.On("SearchByOrigin", mock.Anything, "INVALID").Return(nil, errors.New("invalid airport code"))
 
 	handler := NewFlightHandler(mockService)
 
@@ -75,34 +77,34 @@ func TestFlightHandler_InvalidOriginAirportCode(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "invalid airport code", errResp.Error)
+	mockService.AssertExpectations(t)
 }
 
 func TestFlightHandler_SearchByOrigin_Success(t *testing.T) {
 	departureTime1, _ := time.Parse(time.RFC3339, "2025-10-02T10:00:00Z")
 	departureTime2, _ := time.Parse(time.RFC3339, "2025-10-02T14:00:00Z")
 
-	mockService := &MockFlightService{
-		SearchByOriginFunc: func(ctx context.Context, origin string) ([]ports.Flight, error) {
-			return []ports.Flight{
-				{
-					FlightNumber:       "AA100",
-					OriginAirport:      "JFK",
-					DestinationAirport: "LAX",
-					DepartureTime:      departureTime1,
-					Duration:           360,
-					Airline:            "American Airlines",
-				},
-				{
-					FlightNumber:       "UA200",
-					OriginAirport:      "JFK",
-					DestinationAirport: "SFO",
-					DepartureTime:      departureTime2,
-					Duration:           380,
-					Airline:            "United Airlines",
-				},
-			}, nil
+	expectedFlights := []ports.Flight{
+		{
+			FlightNumber:       "AA100",
+			OriginAirport:      "JFK",
+			DestinationAirport: "LAX",
+			DepartureTime:      departureTime1,
+			Duration:           360,
+			Airline:            "American Airlines",
+		},
+		{
+			FlightNumber:       "UA200",
+			OriginAirport:      "JFK",
+			DestinationAirport: "SFO",
+			DepartureTime:      departureTime2,
+			Duration:           380,
+			Airline:            "United Airlines",
 		},
 	}
+
+	mockService := new(MockFlightService)
+	mockService.On("SearchByOrigin", mock.Anything, "JFK").Return(expectedFlights, nil)
 
 	handler := NewFlightHandler(mockService)
 
@@ -133,4 +135,6 @@ func TestFlightHandler_SearchByOrigin_Success(t *testing.T) {
 	assert.Equal(t, departureTime2, flights[1].DepartureTime)
 	assert.Equal(t, 380, flights[1].Duration)
 	assert.Equal(t, "United Airlines", flights[1].Airline)
+
+	mockService.AssertExpectations(t)
 }
